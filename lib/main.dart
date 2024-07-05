@@ -1,3 +1,4 @@
+import 'package:document_text_recognition/document_scanner/text_detector_view.dart';
 import 'package:document_text_recognition/text_detector_view.dart';
 import 'package:flutter/material.dart';
 
@@ -33,6 +34,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final double sw = MediaQuery.sizeOf(context).width;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -51,6 +54,26 @@ class _MyHomePageState extends State<MyHomePage> {
                   fontSize: 24
                 ),
               )
+            ),
+            const SizedBox(height: 30),
+            TextButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => DocumentRecognizerView())),
+              child: Container(
+                width: sw * 0.8,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(44)
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  "Medicare",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18
+                  ),
+                ),
+              ),
             )
           ],
         ),
