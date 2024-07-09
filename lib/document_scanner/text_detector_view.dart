@@ -6,18 +6,39 @@ import 'detector_view.dart';
 
 
 class DocumentRecognizerView extends StatefulWidget {
+  const DocumentRecognizerView({super.key});
+
   @override
   State<DocumentRecognizerView> createState() => _DocumentRecognizerViewState();
 }
 
 class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
-  var _script = TextRecognitionScript.latin;
-  var _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  final _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
   bool _canProcess = true;
   bool _isBusy = false;
   CustomPaint? _customPaint;
   String? _text;
   var _cameraLensDirection = CameraLensDirection.back;
+
+  List fieldsRules = [
+    {
+      "name": "CardNumber",
+      "blocks": [
+        {
+          "isNumber": true,
+          "length": 4,
+        },
+        {
+          "isNumber": true,
+          "length": 5,
+        },
+        {
+          "isNumber": true,
+          "length": 1,
+        }
+      ]
+    }
+  ];
 
   @override
   void dispose() async {
@@ -38,52 +59,17 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
           initialCameraLensDirection: _cameraLensDirection,
           onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
         ),
-        Positioned(
-          top: 30, left: 100, right: 100,
-          child: Row(
-            children: [
-              const Spacer(),
-              Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: _buildDropdown(),
-                  )),
-              const Spacer(),
-            ],
-          )),
       ]),
     );
   }
 
-  Widget _buildDropdown() => DropdownButton<TextRecognitionScript>(
-    value: _script,
-    icon: const Icon(Icons.arrow_downward),
-    elevation: 16,
-    style: const TextStyle(color: Colors.blue),
-    underline: Container(
-      height: 2,
-      color: Colors.blue,
-    ),
-    onChanged: (TextRecognitionScript? script) {
-      if (script != null) {
-        setState(() {
-          _script = script;
-          _textRecognizer.close();
-          _textRecognizer = TextRecognizer(script: _script);
-        });
-      }
-    },
-    items: TextRecognitionScript.values.map<DropdownMenuItem<TextRecognitionScript>>((script) {
-      return DropdownMenuItem<TextRecognitionScript>(
-        value: script,
-        child: Text(script.name),
-      );
-    }).toList(),
-  );
+  bool isNumeric(String s) {
+    if (s == null) {
+      return false;
+    }
+    return double.tryParse(s) != null;
+  }
+
 
   Future<void> _processImage(InputImage inputImage) async {
     if (!_canProcess) return;
@@ -100,10 +86,33 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
       );
       _customPaint = CustomPaint(painter: painter);
       final blocks = recognizedText.blocks;
-      for (var item in blocks) {
-        print("----TEXT----${item.text}");
-        print("----Bounding box----${item.boundingBox}");
-        print("----Lines----${item.lines}");
+      for (var block in blocks) {
+        // print("----TEXT----${block.text}");
+        // print("----Bounding box----${block.boundingBox}");
+
+        for(var line in block.lines) {
+          // print("=====Lines==(Bounding box)===${line.boundingBox}");
+          // print("=====Lines==(text)===${line.text}");
+
+          for(var element in line.elements) {
+            // print("+++++++Element++(Bounding box)+++${element.boundingBox}");
+            // print("+++++++Element++(text)+++${element.text}");
+
+            for(Map rule in fieldsRules) {
+              if(rule["blocks"].length == line.elements.length) {
+                int successChecks = 0;
+                for(Map ruleBlock in rule["blocks"]) {
+                  if(
+                    element.text.length == ruleBlock["length"] &&
+                    ruleBlock["isNumber"] == isNumeric(element.text)
+                  ) {
+
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     } else {
       _text = 'Recognized text:\n\n${recognizedText.text}';

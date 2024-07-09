@@ -1,7 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
-import 'camera_view.dart';
+import 'text_camera_view.dart';
 
 
 enum DetectorViewMode { liveFeed, gallery }
@@ -44,7 +44,7 @@ class _DetectorViewState extends State<DetectorView> {
 
   @override
   Widget build(BuildContext context) {
-    return CameraView(
+    return TextCameraView(
       customPaint: widget.customPaint,
       onImage: widget.onImage,
       onCameraFeedReady: widget.onCameraFeedReady,
