@@ -173,6 +173,7 @@ class _TextCameraViewState extends State<TextCameraView> {
       enableAudio: false,
       imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
     );
+    // _controller?.setExposureOffset(0.1);
     _controller?.initialize().then((_) {
       if (!mounted) {
         return;
@@ -225,8 +226,7 @@ class _TextCameraViewState extends State<TextCameraView> {
     if (Platform.isIOS) {
       rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
     } else if (Platform.isAndroid) {
-      var rotationCompensation =
-      _orientations[_controller!.value.deviceOrientation];
+      var rotationCompensation = _orientations[_controller!.value.deviceOrientation];
       if (rotationCompensation == null) return null;
       if (camera.lensDirection == CameraLensDirection.front) {
         rotationCompensation = (sensorOrientation + rotationCompensation) % 360;

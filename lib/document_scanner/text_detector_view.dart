@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:document_text_recognition/document_scanner/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../painters/text_detector_painter.dart';
@@ -20,25 +21,10 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
   String? _text;
   var _cameraLensDirection = CameraLensDirection.back;
 
-  List fieldsRules = [
-    {
-      "name": "CardNumber",
-      "blocks": [
-        {
-          "isNumber": true,
-          "length": 4,
-        },
-        {
-          "isNumber": true,
-          "length": 5,
-        },
-        {
-          "isNumber": true,
-          "length": 1,
-        }
-      ]
-    }
-  ];
+  String cardNumber = "";
+  List<String> medicareUsers = [];
+
+  Map<String, dynamic> medicareFields = {};
 
   @override
   void dispose() async {
@@ -63,14 +49,6 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
     );
   }
 
-  bool isNumeric(String s) {
-    if (s == null) {
-      return false;
-    }
-    return double.tryParse(s) != null;
-  }
-
-
   Future<void> _processImage(InputImage inputImage) async {
     if (!_canProcess) return;
     if (_isBusy) return;
@@ -85,35 +63,36 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
         _cameraLensDirection,
       );
       _customPaint = CustomPaint(painter: painter);
-      final blocks = recognizedText.blocks;
-      for (var block in blocks) {
-        // print("----TEXT----${block.text}");
-        // print("----Bounding box----${block.boundingBox}");
 
-        for(var line in block.lines) {
-          // print("=====Lines==(Bounding box)===${line.boundingBox}");
-          // print("=====Lines==(text)===${line.text}");
 
-          for(var element in line.elements) {
-            // print("+++++++Element++(Bounding box)+++${element.boundingBox}");
-            // print("+++++++Element++(text)+++${element.text}");
+      if(cardNumber.isEmpty) {
+        cardNumber = Utilities().findField(
+            blocks: recognizedText.blocks,
+            rules: [{Rules.isNumber: 4}, {Rules.isNumber: 5}, {Rules.isNumber: 1}]
+        );
+      }
 
-            for(Map rule in fieldsRules) {
-              if(rule["blocks"].length == line.elements.length) {
-                int successChecks = 0;
-                for(Map ruleBlock in rule["blocks"]) {
-                  if(
-                    element.text.length == ruleBlock["length"] &&
-                    ruleBlock["isNumber"] == isNumeric(element.text)
-                  ) {
-
-                  }
-                }
-              }
-            }
+      if(medicareUsers.length < 5) {
+        String user = Utilities().findField(
+          blocks: recognizedText.blocks,
+          rules: [{Rules.isNumber: 1}, {Rules.isUpperCaseText: 0}, {Rules.isUpperCaseText: 1}, {Rules.isUpperCaseText: 0}]
+        );
+        if(user.isNotEmpty && Utilities().isNumeric(user[0]) && int.parse(user[0]) <= 5) {
+          if(medicareUsers.isNotEmpty && !medicareUsers.toString().contains(user[0])) {
+            medicareUsers.add(user);
+          } else if(medicareUsers.isEmpty) {
+            medicareUsers.add(user);
           }
         }
       }
+
+      medicareFields = {
+        "CardNumber": cardNumber,
+        "Users": medicareUsers
+      };
+
+      print("---------_$medicareFields");
+
     } else {
       _text = 'Recognized text:\n\n${recognizedText.text}';
       // TODO: set _customPaint to draw boundingRect on top of image
