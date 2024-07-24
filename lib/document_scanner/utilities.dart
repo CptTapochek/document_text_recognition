@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 
@@ -8,7 +9,12 @@ class Utilities {
     String field = "";
     for (var block in blocks) {
       for(var line in block.lines) {
+        // if(line.text == "SOMERFIELD") {
+        //   print("=====Lines==(text)===${line.text}");
+        //   print("=====Lines==(text)===${line.boundingBox}");
+        // }
         // print("=====Lines==(text)===${line.text}");
+        // print("=====Lines==(text)===${line.boundingBox}");
         List<String> fieldElements = [];
         if(rules.length == line.elements.length) {
           for(var element in line.elements) {
@@ -37,12 +43,12 @@ class Utilities {
 
               if(rule[Rules.isText] != null) {
                 if(rule[Rules.isText] != 0 && elementText.length == rule[Rules.isText]) {
-                  if(fieldElements.isNotEmpty && fieldElements.last != elementText) {
+                  if(fieldElements.isNotEmpty && fieldElements.last != elementText && elementText.isNotEmpty) {
                     fieldElements.add(elementText);
                   } else if(fieldElements.isEmpty) {
                     fieldElements.add(elementText);
                   }
-                } else if(rule[Rules.isText] == 0 && elementText.length < maximalElementLength) {
+                } else if(rule[Rules.isText] == 0 && elementText.length < maximalElementLength && elementText.isNotEmpty) {
                   if(fieldElements.isNotEmpty && fieldElements.last != elementText) {
                     fieldElements.add(elementText);
                   } else if(fieldElements.isEmpty) {
@@ -54,13 +60,13 @@ class Utilities {
               if(rule[Rules.isUpperCaseText] != null) {
                 if(rule[Rules.isUpperCaseText] != 0 && elementText.length == rule[Rules.isUpperCaseText]) {
                   if(isUpperCase(elementText)) {
-                    if(fieldElements.isNotEmpty && fieldElements.last != elementText) {
+                    if(fieldElements.isNotEmpty && fieldElements.last != elementText && elementText.isNotEmpty) {
                       fieldElements.add(elementText);
                     } else if(fieldElements.isEmpty) {
                       fieldElements.add(elementText);
                     }
                   }
-                } else if(rule[Rules.isUpperCaseText] == 0 && elementText.length < maximalElementLength) {
+                } else if(rule[Rules.isUpperCaseText] == 0 && elementText.length < maximalElementLength && elementText.isNotEmpty) {
                   if(isUpperCase(elementText)) {
                     if(fieldElements.isNotEmpty && fieldElements.last != elementText) {
                       fieldElements.add(elementText);
@@ -72,8 +78,20 @@ class Utilities {
               }
             }
           }
+
           if(fieldElements.length == rules.length) {
-            field = fieldElements.join(" ");
+            for(Map rule in rules) {
+              final int ruleValue = rule.values.first;
+              if(ruleValue != 0) {
+                for(String fieldElement in fieldElements) {
+                  if(fieldElement.length == ruleValue) {
+                    field = fieldElements.join(" ");
+                  }
+                }
+              } else {
+                field = fieldElements.join(" ");
+              }
+            }
           }
         }
       }
@@ -89,11 +107,25 @@ class Utilities {
     final upperCaseRegExp = RegExp(r'^[A-Z]+$');
     return upperCaseRegExp.hasMatch(str);
   }
+
+  String mixingCharacters({required String wrongCharacter, required String exceptedCharacter}) {
+    final Random random = Random();
+    int randomNumber = random.nextInt(2);
+    String character = exceptedCharacter;
+    if(randomNumber == 1) {
+      character = wrongCharacter;
+    }
+    return character;
+  }
 }
 
 enum Rules {
   isNumber,
+  isNumberO,
   isText,
+  isTextO,
   isUpperCaseText,
+  isUpperCaseTextO,
   isLowerCaseText,
+  isLowerCaseTextO,
 }

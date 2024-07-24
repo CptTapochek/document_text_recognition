@@ -23,6 +23,7 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
 
   String cardNumber = "";
   List<String> medicareUsers = [];
+  String validTo = "";
 
   Map<String, dynamic> medicareFields = {};
 
@@ -64,20 +65,26 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
       );
       _customPaint = CustomPaint(painter: painter);
 
-
       if(cardNumber.isEmpty) {
         cardNumber = Utilities().findField(
-            blocks: recognizedText.blocks,
-            rules: [{Rules.isNumber: 4}, {Rules.isNumber: 5}, {Rules.isNumber: 1}]
+          blocks: recognizedText.blocks,
+          rules: [{Rules.isNumber: 4}, {Rules.isNumber: 5}, {Rules.isNumber: 1}]
         );
+      }
+      
+      if(validTo.isEmpty) {
+        validTo = Utilities().findField(
+          blocks: recognizedText.blocks,
+          rules: [{Rules.isUpperCaseText: 5}, {Rules.isUpperCaseText: 2}, {Rules.isText: 7}], contains: "VALID TO"
+        ).replaceAll("VALID TO ", "");
       }
 
       if(medicareUsers.length < 5) {
         String user = Utilities().findField(
           blocks: recognizedText.blocks,
-          rules: [{Rules.isNumber: 1}, {Rules.isUpperCaseText: 0}, {Rules.isUpperCaseText: 1}, {Rules.isUpperCaseText: 0}]
+          rules: [{Rules.isNumber: 1}, {Rules.isUpperCaseText: 0}, {Rules.isUpperCaseText: 0}]
         );
-        if(user.isNotEmpty && Utilities().isNumeric(user[0]) && int.parse(user[0]) <= 5) {
+        if(user.isNotEmpty && Utilities().isNumeric(user[0])) {
           if(medicareUsers.isNotEmpty && !medicareUsers.toString().contains(user[0])) {
             medicareUsers.add(user);
           } else if(medicareUsers.isEmpty) {
@@ -88,13 +95,15 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
 
       medicareFields = {
         "CardNumber": cardNumber,
-        "Users": medicareUsers
+        "Users": medicareUsers,
+        "ValidTo": validTo
       };
 
       print("---------_$medicareFields");
 
     } else {
       _text = 'Recognized text:\n\n${recognizedText.text}';
+      print("----$_text");
       // TODO: set _customPaint to draw boundingRect on top of image
       _customPaint = null;
     }
