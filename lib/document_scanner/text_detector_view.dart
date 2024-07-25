@@ -65,6 +65,13 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
       );
       _customPaint = CustomPaint(painter: painter);
 
+
+      Utilities().searchMedicareUser(
+        blocks: recognizedText.blocks,
+        targetRules: [{Rules.isNumber: 1}, {Rules.isUpperCaseText: 0}]
+      );
+
+
       if(cardNumber.isEmpty) {
         cardNumber = Utilities().findField(
           blocks: recognizedText.blocks,
@@ -76,13 +83,13 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
         validTo = Utilities().findField(
           blocks: recognizedText.blocks,
           rules: [{Rules.isUpperCaseText: 5}, {Rules.isUpperCaseText: 2}, {Rules.isText: 7}], contains: "VALID TO"
-        ).replaceAll("VALID TO ", "");
+        ).replaceAll("VALID TO ", "").replaceAll("VALID IO", "");
       }
 
       if(medicareUsers.length < 5) {
         String user = Utilities().findField(
           blocks: recognizedText.blocks,
-          rules: [{Rules.isNumber: 1}, {Rules.isUpperCaseText: 0}, {Rules.isUpperCaseText: 0}]
+          rules: [{Rules.isNumber: 1}, {Rules.isUpperCaseText: 0}, {Rules.isUpperCaseTextO: 1}, {Rules.isUpperCaseText: 0}]
         );
         if(user.isNotEmpty && Utilities().isNumeric(user[0])) {
           if(medicareUsers.isNotEmpty && !medicareUsers.toString().contains(user[0])) {
@@ -99,7 +106,7 @@ class _DocumentRecognizerViewState extends State<DocumentRecognizerView> {
         "ValidTo": validTo
       };
 
-      print("---------_$medicareFields");
+      // print("---------_$medicareFields");
 
     } else {
       _text = 'Recognized text:\n\n${recognizedText.text}';
